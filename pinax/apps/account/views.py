@@ -99,7 +99,7 @@ def login(request, **kwargs):
         "form": form,
         "url_required": url_required,
         "redirect_field_name": redirect_field_name,
-        "redirect_field_value": request.GET.get(redirect_field_name),
+        "redirect_field_value": request.REQUEST.get(redirect_field_name),
     })
     ctx.update(extra_context)
     
@@ -114,6 +114,7 @@ def signup(request, **kwargs):
     success_url = kwargs.pop("success_url", None)
     
     group, bridge = group_and_bridge(kwargs)
+    ctx = group_context(group, bridge)
     
     if success_url is None:
         success_url = get_default_redirect(request, redirect_field_name)
@@ -123,9 +124,12 @@ def signup(request, **kwargs):
         if form.is_valid():
             user = form.save(request=request)
             if settings.ACCOUNT_EMAIL_VERIFICATION:
-                return render_to_response("account/verification_sent.html", {
+                ctx.update({
                     "email": form.cleaned_data["email"],
-                }, context_instance=RequestContext(request))
+                    "success_url": success_url,
+                })
+                ctx = RequestContext(request, ctx)
+                return render_to_response("account/verification_sent.html", ctx)
             else:
                 form.login(request, user)
                 messages.add_message(request, messages.SUCCESS,
@@ -137,11 +141,10 @@ def signup(request, **kwargs):
     else:
         form = form_class(group=group)
     
-    ctx = group_context(group, bridge)
     ctx.update({
         "form": form,
         "redirect_field_name": redirect_field_name,
-        "redirect_field_value": request.GET.get(redirect_field_name),
+        "redirect_field_value": request.REQUEST.get(redirect_field_name),
     })
     
     return render_to_response(template_name, RequestContext(request, ctx))
