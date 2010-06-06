@@ -8,6 +8,10 @@ from django.http import HttpResponse, HttpResponseForbidden
 
 
 def username_autocomplete_all(request):
+    """
+    Provides username matching based on matches of the beginning of the
+    usernames of all users in the system.
+    """
     if request.user.is_authenticated():
         from django.contrib.auth.models import User
         from pinax.apps.basic_profiles.models import Profile
@@ -36,6 +40,10 @@ def username_autocomplete_all(request):
 
 
 def username_autocomplete_friends(request):
+    """
+    Provides username matching based on matches of the beginning of the
+    usernames of friends.
+    """
     if request.user.is_authenticated():
         from friends.models import Friendship
         from pinax.apps.profiles.models import Profile
